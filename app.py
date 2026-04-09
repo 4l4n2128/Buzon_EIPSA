@@ -20,7 +20,7 @@ st.markdown("""
         font-family: 'Helvetica', sans-serif;
     }
     </style>
-    """, unsafe_allow_html=True)
+    """,unsafe_allow_html=True)
 
 # --- ENCABEZADO CON LOGO ---
 # Si tienes el logo en la carpeta, descomenta la línea de abajo: 
