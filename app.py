@@ -26,8 +26,8 @@ st.markdown("""
 # Si tienes el logo en la carpeta, descomenta la línea de abajo: 
 st.image("logo_eipsa.png", width=200)
 
-st.title("📩 Buzón de Atención al Empleado")
-st.subheader("Especialistas en Instrumentación y Procesos S.A.")
+st.title("📩 Buzón de RH EIPSA")
+st.subheader("ELECTRICIDAD INDUSTRIAL DE POTENCIA")
 st.markdown("---")
 
 # --- TU CONEXIÓN SUPABASE (Mantén tus llaves aquí) ---
@@ -52,7 +52,7 @@ if id_empleado:
             if st.button("💰 Mi Nómina"):
                 st.session_state.opcion = "Nomina"
         with col2:
-            if st.button("🏖️ Mis Vacaciones"):
-                st.session_state.opcion = "Vacaciones"
+            if st.button("🏖️ Mi Rotación"):
+                st.session_state.opcion = "Rotación"
     else:
         st.error("❌ ID no encontrado. Por favor, verifica con tu supervisor.")
