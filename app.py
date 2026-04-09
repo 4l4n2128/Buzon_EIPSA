@@ -31,8 +31,8 @@ st.subheader("Especialistas en Instrumentación y Procesos S.A.")
 st.markdown("---")
 
 # --- TU CONEXIÓN SUPABASE (Mantén tus llaves aquí) ---
-URL_SUPABASE = "TU_URL"
-KEY_SUPABASE = "TU_KEY"
+URL_SUPABASE = "https://mpcatrdfwzrjmkqqystj.supabase.co"
+KEY_SUPABASE = "sb_publishable_mJaq6bbofO2QE7Ms9yIWxg_NzbkFNi_"
 supabase = create_client(URL_SUPABASE, KEY_SUPABASE)
 
 # --- LÓGICA DE IDENTIFICACIÓN ---
