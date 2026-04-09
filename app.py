@@ -23,8 +23,8 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- ENCABEZADO CON LOGO ---
-# Si tienes el logo en la carpeta, descomenta la línea de abajo:
-# st.image("logo_eipsa.png", width=200)
+# Si tienes el logo en la carpeta, descomenta la línea de abajo: 
+st.image("logo_eipsa.png", width=200)
 
 st.title("📩 Buzón de Atención al Empleado")
 st.subheader("Especialistas en Instrumentación y Procesos S.A.")
@@ -36,7 +36,7 @@ KEY_SUPABASE = "sb_publishable_mJaq6bbofO2QE7Ms9yIWxg_NzbkFNi_"
 supabase = create_client(URL_SUPABASE, KEY_SUPABASE)
 
 # --- LÓGICA DE IDENTIFICACIÓN ---
-id_empleado = st.text_input("Ingresa tu número de ID:")
+id_empleado = st.text_input("Ingresa tu número de Casco:")
 
 if id_empleado:
     consulta = supabase.table("Personal_EIPSA").select("Título").eq("ID_Empleado", id_empleado).execute()
