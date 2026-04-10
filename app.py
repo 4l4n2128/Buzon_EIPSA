@@ -13,11 +13,12 @@ st.markdown("""
     <style>
     .stButton>button { background-color: #003366; color: white; border-radius: 5px; width: 100%; }
     h1 { color: #b30000; }
+    .stAlert { border-radius: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
 st.image("logo_eipsa.png", width=200) 
-st.title("📩 Buzón de Atención al trabajador EIPSO")
+st.title("📩 Buzón de Atención al Empleado")
 st.subheader("ELECTRICIDAD INDUSTRIAL DE POTENCIA")
 st.markdown("---")
 
@@ -28,7 +29,7 @@ if id_empleado:
     consulta = supabase.table("Personal_EIPSA").select("*").eq("ID_Empleado", id_empleado).execute()
     
     if consulta.data:
-        empleado = consulta.data[0] # Tomamos el primer registro
+        empleado = consulta.data[0] # Tomamos los datos del trabajador
         
         rfc_usuario = st.text_input("2. Ingresa tu RFC para confirmar identidad:", type="password")
         
@@ -41,10 +42,11 @@ if id_empleado:
                 whatsapp = st.text_input("Número de WhatsApp para contacto:")
                 
                 if whatsapp:
-                    tema = st.selectbox("¿Qué tema deseas consultar?", 
+                    st.write("### Selecciona el trámite que deseas realizar")
+                    tema = st.selectbox("Categoría principal:", 
                                         ["Selecciona...", "1.- Rotaciones", "2.- Nóminas", "3.- Permisos", "4.- Ambiente laboral"])
 
-                    opcion_final = "" # Variable para guardar la sub-opción
+                    opcion_final = ""
 
                     if tema == "1.- Rotaciones":
                         opcion_final = st.radio("Opciones:", ["1.1.- Solicitud de rotación", "1.1.2.- Viáticos no pagados", "1.2.- Solicitud bono no rotación"])
@@ -60,44 +62,59 @@ if id_empleado:
 
                     if tema != "Selecciona...":
                         detalles = st.text_area("Explica detalladamente tu situación:")
-                        archivo_evidencia = st.file_uploader("Sube una evidencia (foto o PDF) - Opcional:", type=["png", "jpg", "jpeg", "pdf"])
+                        
+                        # --- FILTRO DE ARCHIVOS 5MB ---
+                        archivo_evidencia = st.file_uploader("Sube evidencia (Máximo 5MB):", type=["png", "jpg", "jpeg", "pdf"])
+                        
+                        permitir_envio = True
+                        if archivo_evidencia:
+                            tamanio_mb = archivo_evidencia.size / (1024 * 1024)
+                            if tamanio_mb > 5:
+                                st.error(f"❌ El archivo pesa {tamanio_mb:.2f} MB. El límite es 5MB.")
+                                permitir_envio = False
+                            else:
+                                st.info(f"✅ Archivo listo ({tamanio_mb:.2f} MB)")
 
                         # --- BOTÓN DE ENVÍO FINAL ---
                         if st.button("🚀 ENVIAR REPORTE A RH"):
-                            with st.spinner("Procesando tu reporte..."):
-                                url_archivo = ""
-                                
-                                # A. Subida de archivo si existe
-                                if archivo_evidencia:
-                                    try:
-                                        nombre_archivo = f"{id_empleado}_{archivo_evidencia.name}"
-                                        supabase.storage.from_("evidencias_rh").upload(
-                                            path=nombre_archivo,
-                                            file=archivo_evidencia.getvalue(),
-                                            file_options={"content-type": archivo_evidencia.type}
-                                        )
-                                        url_archivo = supabase.storage.from_("evidencias_rh").get_public_url(nombre_archivo)
-                                    except Exception as e:
-                                        st.error(f"Error al subir archivo: {e}")
+                            if not permitir_envio:
+                                st.warning("Por favor, cambia el archivo por uno más ligero.")
+                            else:
+                                with st.spinner("Procesando tu reporte..."):
+                                    url_archivo = ""
+                                    
+                                    # Subida de archivo al Bucket 'evidencias_rh'
+                                    if archivo_evidencia:
+                                        try:
+                                            nombre_limpio = archivo_evidencia.name.replace(" ", "_")
+                                            nombre_final = f"{id_empleado}_{nombre_limpio}"
+                                            supabase.storage.from_("evidencias_rh").upload(
+                                                path=nombre_final,
+                                                file=archivo_evidencia.getvalue(),
+                                                file_options={"content-type": archivo_evidencia.type}
+                                            )
+                                            url_archivo = supabase.storage.from_("evidencias_rh").get_public_url(nombre_final)
+                                        except Exception as e:
+                                            st.error(f"Error al subir archivo: {e}")
 
-                                # B. Guardado en la tabla Reportes_EIPSA
-                                datos_reporte = {
-                                    "id_empleado": id_empleado,
-                                    "nombre_empleado": empleado['Título'],
-                                    "whatsapp": whatsapp,
-                                    "tema": tema,
-                                    "opcion_seleccionada": opcion_final,
-                                    "detalles": detalles,
-                                    "url_archivo": url_archivo
-                                }
+                                    # Guardado en la tabla Reportes_EIPSA
+                                    datos_reporte = {
+                                        "id_empleado": id_empleado,
+                                        "nombre_empleado": empleado['Título'],
+                                        "whatsapp": whatsapp,
+                                        "tema": tema,
+                                        "opcion_seleccionada": opcion_final,
+                                        "detalles": detalles,
+                                        "url_archivo": url_archivo
+                                    }
 
-                                res_insert = supabase.table("Reportes_EIPSA").insert(datos_reporte).execute()
+                                    res_insert = supabase.table("Reportes_EIPSA").insert(datos_reporte).execute()
 
-                                if res_insert.data:
-                                    st.balloons()
-                                    st.success(f"✅ ¡Enviado! Gracias {empleado['Título']}, RH te contactará pronto.")
-                                else:
-                                    st.error("❌ Error al guardar el reporte.")
+                                    if res_insert.data:
+                                        st.balloons()
+                                        st.success(f"✅ ¡Enviado! RH te contactará pronto.")
+                                    else:
+                                        st.error("❌ Error al guardar el reporte.")
             else:
                 st.error("❌ El RFC no coincide.")
     else:
